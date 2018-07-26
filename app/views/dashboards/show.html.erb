@@ -1,2 +1,27 @@
 <%#= render 'layouts/alerts' %>
-Dashboard coming soon.
+<h1>Dashboard coming soon.</h1>
+<h2>Purchase form test below.</h2>
+
+
+<%= form_for @purchase do |purchase_form| %>
+  <%= fields_for :product do |product_form| %>
+    <h5>Product fields</h5>
+    <%= product_form.label "Nazwa" %>
+    <%= product_form.text_field :name %></br />
+    <%= product_form.label "Kategoria" %>
+    <%= product_form.text_field :category %></br />
+    <%= product_form.label "Kod kreskowy" %>
+    <%= product_form.text_field :barcode %></br />
+    <%= product_form.label "Jednostka" %>
+    <%= product_form.text_field :unit %></br />
+    <h5>Purchase fields</h5>
+    <%= purchase_form.label "Cena za jednostkę" %>
+    <%= purchase_form.text_field :unit_price %><br />
+    <%= purchase_form.label "Ilość" %>
+    <%= purchase_form.text_field :amount %><br />
+    <%= purchase_form.label "Data ważności" %>
+    <%= purchase_form.text_field :expiration_date %><br />
+    <br />
+    <%= purchase_form.submit "Dodaj zakup" %>
+  <% end %>
+<% end %>
