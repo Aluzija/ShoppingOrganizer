@@ -1,2 +1,29 @@
 <%#= render 'layouts/alerts' %>
 Dashboard coming soon.
+
+<br><br>
+
+<input type="search" list="items" autocomplete="off" type="text" id="search_item" placeholder="search..."></input>
+<datalist id="items"></datalist>
+
+<br><br>
+<table>
+    <thead>
+        <tr>
+            <th>Nazwa</th>
+            <th>Kategoria</th>
+            <th>Kod kreskowy</th>
+            <th>Średnia cena<th>
+        </tr>
+    </thead>
+        <tbody>
+            <% @products.each do |product| %>
+                <tr>
+                    <td><%= product.name %></td>
+                    <td><%= product.category %></td>
+                    <td><%= ProductsHelper.barcode(product) %></td>
+                    <td><%= ProductsHelper.avg_price_with_unit(product) %></td>
+                </tr>
+            <% end %>
+        </tbody>
+</table>

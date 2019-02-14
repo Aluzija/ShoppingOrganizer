@@ -13,3 +13,6 @@
  *= require_tree .
  *= require_self
  */
+input#search_item::-webkit-calendar-picker-indicator {
+    display: none;
+}
