@@ -3,7 +3,12 @@ Dashboard coming soon.
 
 <br><br>
 
-<input type="search" list="items" autocomplete="off" type="text" id="search_item" placeholder="search..."></input>
+<%#= form_tag(coupons_path) do %>
+  <!-- Store <%#= text_field_tag :store %> -->
+  <%#= submit_tag 'Search' %>
+<%# end %>
+
+<input list="items" autocomplete="off" type="text" id="search_item" placeholder="search..."></input>
 <datalist id="items"></datalist>
 
 <br><br>

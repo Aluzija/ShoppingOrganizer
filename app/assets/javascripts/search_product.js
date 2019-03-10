@@ -16,18 +16,9 @@ var calcController = (function() {
     };
 
     return {
-        // przypisuje przeparsowaną listę produktów do zmiennej 'itemsList'
-        init: function(itemsJSON, route) {
-            var products = JSON.parse(itemsJSON);
-
-            // sprawdź czy otrzymany json jest pusty i jeśli nie jest to czy zawiera wszystkie potrzebne atrybuty (klucze)
-            if (products[0]) {
-                if ("name" in products[0] && "barcode" in products[0] && "id" in products[0]) {
-                    itemsList = products;
-                } else {
-                    throw new Error("Json do not have all required parameters: name, id, barcode. Current route to products list is: " + route);
-                }
-            }
+        // przypisuje listę produktów do zmiennej 'itemsList'
+        init: function() {
+                itemsList = this;
         },
 
         findItemsToAdd: function(str) {
@@ -49,7 +40,7 @@ var calcController = (function() {
         findItemsToErase: function(oldList, toAddList) {
             var list = [];
 
-            Array.from(oldList).forEach(function(oldItem) {
+            oldList.forEach(function(oldItem) {
                 // jeśli przedmiotu ze starej listy nie ma na liście przedmiotów do dodania
                 if (!toAddList.includes(oldItem)) {
                     list.push(oldItem);
@@ -58,6 +49,18 @@ var calcController = (function() {
 
             // przekaż listę przedmiotów przeznaczonych do usunięcia z listy wyboru
             return list;
+        },
+
+        // sprawdza czy wpisana nazwa lub kod kreskowy odpowiadają przedmiotowi
+        // z listy proponowanych i zwraca jego id lub false jeśli nie znalazł
+        selectedFromList: function(list, input) {
+            var res = false;
+            list.forEach(function(item) {
+                if (item.value === input || item.label === input) {
+                    res = item.id;
+                }
+            });
+            return res;
         }
     }
 })();
@@ -71,8 +74,10 @@ var UIController = (function() {
     };
 
     var allProposedItems = function() {
-        return document.getElementById(DOMstrings.itemsList).children;
+        return Array.from(document.getElementById(DOMstrings.itemsList).children);
     };
+
+
 
     return {
         getInput: function() {
@@ -103,36 +108,48 @@ var UIController = (function() {
             });
         },
 
-        removeAllItems: function() {
+        removeAllProposed: function() {
             var list = allProposedItems();
             Array.from(list).forEach(function(item) {
                 item.remove();
             });
+        },
+
+        clearInput: function() {
+            var input = document.getElementById(DOMstrings.inputSearch);
+            input.value = '';
+            input.blur();
+        },
+
+        showItem: function() {
+            console.log("item to append extra", this);
         }
     };
 })();
 
-
-var searchController = (function(UIctrl, calcCtrl) {
+var searchController = (function(UIctrl, calcCtrl, reqCtrl) {
 
     var setEventListeners = function() {
         var DOM = UIctrl.getDOMstrings();
-        document.getElementById(DOM.inputSearch).addEventListener("input", function() {
-            searchItem();
+        document.getElementById(DOM.inputSearch).addEventListener("input", function(e) {
+            var list = UIctrl.getItemsList();
+            var item_id = calcCtrl.selectedFromList(list, e.target.value);
+            if (item_id) {
+                UIctrl.removeAllProposed();
+                UIctrl.clearInput();
+                var keys = ["name", "barcode", "id", "category", "avg_price", "unit"];
+                reqCtrl.get(('http://localhost:3000/product/' + item_id), keys, UIctrl.showItem);
+            } else {
+                searchItem();
+            }
         });
     };
 
     // pobiera listę produktów w formie json i przekazuje do funkcji calcCtrl.init
+    // po drodze sprawdza czy odpowiedź z serwera zawiera wszystkie potrzebne klucze
     var getAllItems = function() {
-        var productsJSONRoute = 'http://localhost:3000/?format=json';
-        var httpRequest = new XMLHttpRequest();
-        httpRequest.onreadystatechange = function() {
-            if (httpRequest.readyState === XMLHttpRequest.DONE && httpRequest.status === 200) {
-                calcCtrl.init(httpRequest.responseText, productsJSONRoute);
-            }
-        };
-        httpRequest.open('GET', productsJSONRoute);
-        httpRequest.send();
+        var keys = ["name", "barcode", "id"];
+        reqCtrl.get('http://localhost:3000/?format=json', keys, calcCtrl.init);
     };
 
     var searchItem = function() {
@@ -158,7 +175,7 @@ var searchController = (function(UIctrl, calcCtrl) {
             UIctrl.removeItems(removeItemsList);
         } else {
             // 2b. Usuń wszystkie proponowane produkty z listy proponowanych
-            UIctrl.removeAllItems(removeItemsList);
+            UIctrl.removeAllProposed();
         }
     };
 
@@ -168,7 +185,7 @@ var searchController = (function(UIctrl, calcCtrl) {
             getAllItems();
         }
     }
-})(UIController, calcController);
+})(UIController, calcController, requestController);
 
 window.addEventListener('load', function() {
     searchController.init();

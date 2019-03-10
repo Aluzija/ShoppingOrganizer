@@ -16,3 +16,7 @@
 input#search_item::-webkit-calendar-picker-indicator {
     display: none;
 }
+
+tr.special {
+    background-color: green;
+}
